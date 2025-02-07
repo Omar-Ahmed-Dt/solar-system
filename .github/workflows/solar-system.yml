@@ -19,6 +19,9 @@ jobs:
       matrix: 
         nodejs_version: [18, 19, 20]
         os: [ubuntu-latest, macos-latest]
+        include:
+          - nodejs_version: 606
+            os: ubuntu-latest
         exclude: 
           - nodejs_version: 18
             os: macos-latest
