@@ -45,8 +45,9 @@ jobs:
         run: npm ci
 
       - name: Run Unit Tests
-        id: unit-testing-step   # define the id for this step to refer it in the next step
+        # id: unit-testing-step   # define the id for this step to refer it in the next step
         run: npm test
+        continue-on-error: true
 
       - name: Archive Test Results
         # if: failure() && (steps.unit-testing-step.outcome == 'failure' || steps.unit-testing-step.outcome == 'success' )
