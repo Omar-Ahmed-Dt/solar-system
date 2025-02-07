@@ -2,11 +2,10 @@ name: Solar System Workflow
 
 on:
   workflow_dispatch:
-
-push:
-  branches:
-    - main
-    - 'feature/*'
+  push:
+    branches:
+      - main
+      - 'feature/*'
 
 jobs:
   unit-testing:
@@ -26,4 +25,3 @@ jobs:
 
       - name: Unit Testing
         run: npm test
-        
