@@ -37,9 +37,11 @@ jobs:
         run: npm ci
 
       - name: Run Unit Tests
+        id: unit-testing-step
         run: npm test
 
       - name: Archive Test Results
+        if: steps.unit-testing-step == 'failure' || steps.unit-testing-step == 'success'
         uses: actions/upload-artifact@v4
         with:
           name: Mocha-Test-Result-${{ matrix.nodejs_version }}-${{ matrix.os }}
