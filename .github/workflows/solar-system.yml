@@ -32,24 +32,22 @@ jobs:
         uses: actions/setup-node@v3
         with:
           node-version: ${{ matrix.nodejs_version }}
-      
-      - name: Cache node modules
+
+      - name: Cache Node Modules
         uses: actions/cache@v4
         with:
-          # npm cache files are stored in `~/.npm` on Linux/macOS
-          # path: ~/.npm
-          path: node_modules
-          key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          path: ~/.npm 
+          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
 
       - name: Install Dependencies
-        run: npm install
+        run: npm ci
 
       - name: Run Unit Tests
-        id: unit-testing-step   # define the id for this step to refer it in the next step
+        id: unit-testing-step
         run: npm test
 
       - name: Archive Test Results
-        if: failure() && (steps.unit-testing-step.outcome == 'failure' || steps.unit-testing-step.outcome == 'success' )
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: Mocha-Test-Result-${{ matrix.nodejs_version }}-${{ matrix.os }}
