@@ -42,7 +42,7 @@ jobs:
           key: ${{ runner.os }}-${{ hashFiles('package-lock.json') }}
 
       - name: Install Dependencies
-        run: npm ci
+        run: npm install
 
       - name: Run Unit Tests
         id: unit-testing-step   # define the id for this step to refer it in the next step
