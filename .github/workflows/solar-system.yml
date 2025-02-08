@@ -131,4 +131,4 @@ jobs:
           push: true
           tags: |     # push the new img to multi registries 
             ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
-            ghcr.io/${{ github.repository_owner }}/solar-system:${{github.sha}}
+            ghcr.io/omar-ahmed-dt/solar-system:${{github.sha}}
