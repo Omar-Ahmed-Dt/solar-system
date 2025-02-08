@@ -82,6 +82,8 @@ jobs:
   docker:
     name: Containerization
     needs: [unit-testing, code-coverage]
+    permissions: 
+      packages: write
     runs-on: ubuntu-latest
     steps:
 
@@ -99,7 +101,7 @@ jobs:
         with:
           registry: ghcr.io 
           username: ${{ github.repository_owner }}
-          password: ${{ secrets.GITHUB_TOKEN }}   # this token is automatically generated, don't need to create it
+          password: ${{ secrets.GITHUB_TOKEN }}   # this token is automatically generated, don't need to create it. by default, its permission is read only
 
       - name: Docker Build For Testing 
         uses: docker/build-push-action@v6
