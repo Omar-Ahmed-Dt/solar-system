@@ -15,6 +15,15 @@ env:
 jobs:
   unit-testing:
     name: Unit Testing
+    env:
+      MONGO_URI: 'mongodb//localhost:27017/superData'
+      MONGO_USERNAME: non-prod-user 
+      MONGO_PASSWORD: non-prod-password 
+    services: 
+      mongo-db: 
+        image: siddharth67/mongo-db:non-prod
+        ports: 
+          - 27017:27017
     strategy: 
       matrix: 
         nodejs_version: [18, 19, 20]
@@ -83,20 +92,20 @@ jobs:
     name: Containerization
     needs: [unit-testing, code-coverage]
     permissions: 
-      packages: write
+      packages: write # Grant the GitHub token the necessary permissions (write access to packages) to push the new image to the GitHub Container Registry (GHCR). 
     runs-on: ubuntu-latest
     steps:
 
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Login to Docker Hub   # by default, this actions is login to docker hub if we didn't spicify any registry
+      - name: Login to Docker Hub   # By default, this action logs in to Docker Hub if no registry is specified.
         uses: docker/login-action@v3
         with:
           username: ${{ vars.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      - name: Login to Github Container Registry  # specify ghcr registry to login
+      - name: Login to Github Container Registry  # specify ghcr to login
         uses: docker/login-action@v3
         with:
           registry: ghcr.io 
@@ -126,11 +135,11 @@ jobs:
             echo Testing Image URL using wget
             wget -q -O - 127.0.0.1:3000/live | grep live
          
-      - name: Container Registry Push   # by default , it push img to docker hub 
+      - name: Container Registry Push  # By default, it pushes the image to Docker Hub if no registry is specified. 
         uses: docker/build-push-action@v6
         with:
           context: .
           push: true
-          tags: |     # push the new img to multi registries 
+          tags: |     # push the new img to multi registries: docker hub and ghcr 
             ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
             ghcr.io/omar-ahmed-dt/solar-system:${{github.sha}}
