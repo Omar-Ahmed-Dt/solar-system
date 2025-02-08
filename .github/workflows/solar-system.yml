@@ -19,14 +19,15 @@ jobs:
     # use non production db to test
     services: 
       mongo-db: 
-        image: siddharth67/mongo-db:non-prod 
+        # image: siddharth67/mongo-db:non-prod 
+        image: mongo:5
         ports: 
           - 27017:27017
     env:
-      # MONGO_URI: 'mongodb://localhost:27017/superData'
-      MONGO_URI: 'mongodb://mongo-db:27017/superData'
-      MONGO_USERNAME: non-prod-user 
-      MONGO_PASSWORD: non-prod-password 
+      MONGO_URI: 'mongodb://root:example@mongo-db:27017/superData?authSource=admin'  # Updated with authentication
+      MONGO_INITDB_ROOT_USERNAME: root  # Default MongoDB root user
+      MONGO_INITDB_ROOT_PASSWORD: example  # Default MongoDB root password
+      MONGO_DB_NAME: superData  # Database name
 
     strategy: 
       matrix: 
