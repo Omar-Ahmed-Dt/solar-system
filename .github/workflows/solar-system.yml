@@ -178,9 +178,10 @@ jobs:
 
       - name: Set KubeConfig file 
         uses: azure/k8s-set-context@v4
-        with : 
+        with:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBECONFIG }}
+
 
       - name: Fetch k8s Cluster Details
         run: | 
