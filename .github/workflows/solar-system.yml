@@ -182,12 +182,12 @@ jobs:
       #     method: kubeconfig
       #     kubeconfig: ${{ secrets.KUBECONFIG }}
 
-      - name: Install AWS CLI
-        run: |
-            curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-            unzip awscliv2.zip
-            sudo ./aws/install
-            aws --version
+      # - name: Install AWS CLI
+      #   run: |
+      #       curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+      #       unzip awscliv2.zip
+      #       sudo ./aws/install --update
+      #       aws --version
         
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v3
@@ -198,6 +198,7 @@ jobs:
 
       - name: Fetch k8s Cluster Details
         run: | 
+            aws eks update-kubeconfig --region us-east-1 --name my-single-node-cluster
             kubectl get nodes
             echo -----------------------------------
             echo "INGRESS_IP=$(kubectl -n ingress-nginx get svc my-ingress-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
