@@ -175,12 +175,17 @@ jobs:
 
       - name: Install Kubectl CLI
         uses: azure/setup-kubectl@v4
+      
+      - name: Set KubeConfig file
+        run: |
+          echo "${{ secrets.KUBECONFIG }}" > kubeconfig.yaml
+          export KUBECONFIG=kubeconfig.yaml
 
-      - name: Set KubeConfig file 
-        uses: azure/k8s-set-context@v4
-        with:
-          method: kubeconfig
-          kubeconfig: ${{ secrets.KUBECONFIG }}
+      # - name: Set KubeConfig file 
+      #   uses: azure/k8s-set-context@v4
+      #   with:
+      #     method: kubeconfig
+      #     kubeconfig: ${{ secrets.KUBECONFIG }}
 
 
       - name: Fetch k8s Cluster Details
