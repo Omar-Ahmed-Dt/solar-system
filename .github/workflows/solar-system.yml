@@ -173,11 +173,31 @@ jobs:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: install Kubectl CLI
+      - name: Install Kubectl CLI
         uses: azure/setup-kubectl@v4
+
+      - name: Set KubeConfig file 
+        uses: azure/k8s-set-context@v4
+        with : 
+          method: kubeconfig
+          kubeconfig: ${{ secrets.KUBECONFIG }}
 
       - name: Fetch k8s Cluster Details
         run: | 
-          kubectl version --short
-          echo -----------------------------------
-          kubectl get nodes
+            kubectl version
+            echo -----------------------------------
+            kubectl get nodes
+            echo "INGRESS_IP=$(kubectl -n ingress-nginx get svc my-ingress-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
+            echo "INGRESS_IP=$(kubectl -n ingress-nginx get svc my-ingress-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')" >> $GITHUB_ENV
+      
+      - name: Replace Token in Manifest Files
+        uses: cschleiden/replace-tokens@v1
+        with:
+          tokenPrefix: '{'
+          tokenSuffix: '}'
+          files: '["kubernetes/development"]'
+        env:
+          NAMESPACE:  ${{ vars.NAMESPACE }}
+          REPLICAS:   ${{ vars.REPLICAS }}
+          K8S_IMAGE:  ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
+          INGRESS_IP: ${{ env.INGRESS_IP }} 
