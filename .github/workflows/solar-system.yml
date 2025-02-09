@@ -181,13 +181,6 @@ jobs:
       #   with:
       #     method: kubeconfig
       #     kubeconfig: ${{ secrets.KUBECONFIG }}
-
-      # - name: Install AWS CLI
-      #   run: |
-      #       curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
-      #       unzip awscliv2.zip
-      #       sudo ./aws/install --update
-      #       aws --version
         
       - name: Configure AWS Credentials
         uses: aws-actions/configure-aws-credentials@v3
@@ -216,3 +209,7 @@ jobs:
           REPLICAS:   ${{ vars.REPLICAS }}
           K8S_IMAGE:  ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
           INGRESS_IP: ${{ env.INGRESS_IP }} 
+      
+      - name: Check files
+        run: | 
+          cat kubernetes/development/*.yaml
