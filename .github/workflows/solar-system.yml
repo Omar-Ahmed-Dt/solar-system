@@ -230,10 +230,12 @@ jobs:
       - name: Deploy to Dev Env
         run: |
           kubectl apply -f kubernetes/development
-      
+        
       - name: Set App Ingress Host
         id: set-ingress-host
         run: | 
+          echo "APP_INGRESS_HOST=$(kubectl get ingress -n development -o jsonpath='{.items[0].spec.tls[0].hosts[0]}')"
+          echo "----------------------------------------------"
           echo "APP_INGRESS_HOST=$(kubectl get ingress -n development -o jsonpath='{.items[0].spec.tls[0].hosts[0]}')" >> "GITHUB_OUTPUT"
 
   integration-testing:
