@@ -194,9 +194,9 @@ jobs:
             aws eks update-kubeconfig --region us-east-1 --name my-single-node-cluster
             kubectl get nodes
             echo -----------------------------------
-            echo "INGRESS_IP=$(kubectl -n ingress-nginx get svc my-ingress-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
+            echo "INGRESS_IP=$(kubectl -n ingress-nginx get svc nginx-ingress-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
             echo -----------------------------------
-            echo "INGRESS_IP=$(kubectl -n ingress-nginx get svc my-ingress-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')" >> $GITHUB_ENV
+            echo "INGRESS_IP=$(kubectl -n ingress-nginx get svc nginx-ingress-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')" >> $GITHUB_ENV
       
       - name: Replace Token in Manifest Files
         uses: cschleiden/replace-tokens@v1
