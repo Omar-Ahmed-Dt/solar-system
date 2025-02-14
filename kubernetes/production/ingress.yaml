@@ -7,18 +7,18 @@ metadata:
   name: solar-system
   namespace: ${NAMESPACE}
 spec:
-    rules:
-    - host: ${INGRESS_IP}
-      http:
-        paths:
-        - backend:
-            service:
-              name: solar-system
-              port:
-                number: 3000
-          path: /prod
-          pathType: Prefix
-    tls:
-    - hosts:
-      - ${INGRESS_IP}
-      secretName: ingress-local-tls
+  rules:
+  - host: ${INGRESS_IP}
+    http:
+      paths:
+      - path: /${NAMESPACE}  # Dynamically use the namespace in the path
+        pathType: Prefix
+        backend:
+          service:
+            name: solar-system
+            port:
+              number: 3000
+  tls:
+  - hosts:
+    - ${INGRESS_IP}
+    secretName: ingress-local-tls
