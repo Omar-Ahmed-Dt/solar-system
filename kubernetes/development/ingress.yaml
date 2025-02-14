@@ -8,7 +8,7 @@ metadata:
   namespace: ${NAMESPACE}
 spec:
     rules:
-    - host: ${NAMESPACE}.${INGRESS_IP}
+    - host: ${INGRESS_IP}
       http:
         paths:
         - backend:
@@ -20,5 +20,5 @@ spec:
           pathType: Prefix
     tls:
     - hosts:
-      - ${NAMESPACE}.${INGRESS_IP}
+      - ${INGRESS_IP}
       secretName: ingress-local-tls
