@@ -8,7 +8,7 @@ metadata:
   namespace: ${NAMESPACE}
 spec:
     rules:
-    - host: {INGRESS_IP}
+    - host: ${INGRESS_IP}
       http:
         paths:
         - backend:
