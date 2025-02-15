@@ -26,28 +26,35 @@ jobs:
       MONGO_USERNAME: non-prod-user 
       MONGO_PASSWORD: non-prod-password 
 
-    strategy: 
-      matrix: 
-        nodejs_version: [18, 20]
-        os: [ubuntu-latest]
-        exclude: 
-          - nodejs_version: 18
-            os: macos-latest
-    runs-on: ${{ matrix.os }}
+    # strategy: 
+    #   matrix: 
+    #     nodejs_version: [18, 20]
+    #     os: [ubuntu-latest]
+    #     exclude: 
+    #       - nodejs_version: 18
+    #         os: macos-latest
+    # runs-on: ${{ matrix.os }}
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v4
 
-      - name: Setup Node.js Version - ${{ matrix.nodejs_version }}
+      # - name: Setup Node.js Version - ${{ matrix.nodejs_version }}
+      #   uses: actions/setup-node@v3
+      #   with:
+      #     node-version: ${{ matrix.nodejs_version }}
+
+      - name: Setup Node.js Version 
         uses: actions/setup-node@v3
         with:
-          node-version: ${{ matrix.nodejs_version }}
+          node-version: 18
 
       - name: Cache Node Modules
         uses: actions/cache@v4
         with:
           path: ~/.npm 
-          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          # key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          key: npm-${{ hashFiles('package-lock.json') }}
 
       - name: Install Dependencies
         run: npm ci
@@ -57,10 +64,11 @@ jobs:
         run: npm test
 
       - name: Archive Test Results
-        if: failure() && (steps.unit-testing-step.outcome == 'failure' || steps.unit-testing-step.outcome == 'success' )
+        # if: failure() && (steps.unit-testing-step.outcome == 'failure' || steps.unit-testing-step.outcome == 'success' )
         uses: actions/upload-artifact@v4
         with:
-          name: Mocha-Test-Result-${{ matrix.nodejs_version }}-${{ matrix.os }}
+          # name: Mocha-Test-Result-${{ matrix.nodejs_version }}-${{ matrix.os }}
+          name: Mocha-Test-Result
           path: test-results.xml
 
   code-coverage: 
@@ -94,7 +102,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.npm 
-          key: ${{ runner.os }}-npm-${{ hashFiles('package-lock.json') }}
+          key: npm-${{ hashFiles('package-lock.json') }}
 
       - name: Install Dependencies
         run: npm ci
@@ -119,7 +127,7 @@ jobs:
       - name: Download Mocha Test Artifact
         uses: actions/download-artifact@v4
         with: 
-         name: Mocha-Test-Result-*
+         name: Mocha-Test-Result
 
       - name: Download Code Coverage Artifact 
         uses: actions/download-artifact@v4
