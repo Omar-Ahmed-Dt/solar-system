@@ -1,18 +1,38 @@
 name: Deployment - Reusable Workflow
 on: 
     workflow_call:
-        secrets:
-            aws-access-key: 
-                required: true
-            aws-secret-access-key: 
-                required: true
-            mongodb-secret: 
-                required: true
+
+      inputs: 
+        mongodb-uri: 
+              required: true
+              type: string
+        k8s-manifest-dir: 
+          description: Dir containing k8s manifest files
+          default: kubernetes/
+          required: true
+          type: string
+        environment: 
+          description: Provide the deployment environment 
+          default: dev
+          required: true
+          type: string
+      
+      outputs:
+        application_url: 
+          value: ${{ jobs.reuse-deploy.outputs.APP_INGRESS_URL }} 
+
+      secrets:
+          aws-access-key: 
+              required: true
+          aws-secret-access-key: 
+              required: true
+          mongodb-secret: 
+              required: true
 
 jobs:
     reuse-deploy: 
         environment: 
-          name: development
+          name: ${{ inputs.environment }}
           url: ${{ steps.set-ingress-host.outputs.APP_INGRESS_HOST }} 
         outputs: 
           APP_INGRESS_URL: ${{ steps.set-ingress-host.outputs.APP_INGRESS_HOST }}
@@ -46,7 +66,7 @@ jobs:
             with:
               tokenPrefix: '${'
               tokenSuffix: '}'
-              files: '["kubernetes/development/*.yaml"]'
+              files: '["${{ inputs.k8s-manifest-dir }}*.yaml"]'
             env:
               NAMESPACE:  ${{ vars.NAMESPACE }}
               REPLICAS:   ${{ vars.REPLICAS }}
@@ -55,13 +75,13 @@ jobs:
             
           - name: Check files
             run: | 
-              cat kubernetes/development/*.yaml
+              cat ${{ inputs.k8s-manifest-dir }}*.yaml
             
           - name: Create MongoDB Secret
             run: |
               kubectl create ns ${{ vars.NAMESPACE }} --dry-run=client -o yaml | kubectl apply -f -
               kubectl -n ${{ vars.NAMESPACE }} create secret generic mongo-db-creds \
-                --from-literal=MONGO_URI=${{ env.MONGO_URI }} \
+                --from-literal=MONGO_URI=${{ inputs.mongodb-uri }} \
                 --from-literal=MONGO_USERNAME=${{ vars.MONGO_USERNAME }} \
                 --from-literal=MONGO_PASSWORD=${{ secrets.mongodb-secret }} \
                 --save-config \
@@ -70,7 +90,7 @@ jobs:
                 
           - name: Deploy to Dev Env
             run: |
-              kubectl apply -f kubernetes/development
+              kubectl apply -f ${{ inputs.k8s-manifest-dir }}
                 
           - name: Set App Ingress Host
             id: set-ingress-host
