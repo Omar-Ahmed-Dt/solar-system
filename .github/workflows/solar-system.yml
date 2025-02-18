@@ -239,24 +239,14 @@ jobs:
 
           - name: Test URL using CURL and JQ
             run: |
+              aws eks update-kubeconfig --region us-east-1 --name my-cluster
               kubectl port-forward svc/solar-system -n development 3000:3000 &
               PORT_FORWARD_PID=$!
     
               # Wait briefly to ensure port-forward is established
               sleep 5
               echo "----------------------------------------------"
-              RESPONSE=$(curl http://localhost:3000/live -s -k | jq -r .status)
-              echo "Response: $RESPONSE"
-    
-              # Check if the response contains 'live'
-              if [[ "$RESPONSE" == "live" ]]; then
-                echo "Service is live."
-                exit 0
-              else
-                echo "Service did not return live status."
-                exit 1
-              fi
-    
+              curl http://localhost:3000/live -s -k | jq -r .status | grep -i live 
               # Cleanup
               kill $PORT_FORWARD_PID
 
