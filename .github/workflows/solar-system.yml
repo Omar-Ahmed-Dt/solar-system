@@ -223,6 +223,43 @@ jobs:
       environment: development
       k8s-manifest-dir: kubernetes/development/
 
+  dev-integration-testing:
+        name: Dev Integration Testing
+        if: contains(github.ref, 'feature/')
+        needs: dev-deploy
+        runs-on: ubuntu-latest
+        steps:
+
+          - name: Configure AWS Credentials
+            uses: aws-actions/configure-aws-credentials@v3
+            with: 
+              aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+              aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
+              aws-region: us-east-1 
+
+          - name: Test URL using CURL and JQ
+            run: |
+              kubectl port-forward svc/solar-system -n development 3000:3000 &
+              PORT_FORWARD_PID=$!
+    
+              # Wait briefly to ensure port-forward is established
+              sleep 5
+              echo "----------------------------------------------"
+              RESPONSE=$(curl http://localhost:3000/live -s -k | jq -r .status)
+              echo "Response: $RESPONSE"
+    
+              # Check if the response contains 'live'
+              if [[ "$RESPONSE" == "live" ]]; then
+                echo "Service is live."
+                exit 0
+              else
+                echo "Service did not return live status."
+                exit 1
+              fi
+    
+              # Cleanup
+              kill $PORT_FORWARD_PID
+
   prod-deploy: 
     if: github.ref == 'refs/heads/main'
     needs: docker
