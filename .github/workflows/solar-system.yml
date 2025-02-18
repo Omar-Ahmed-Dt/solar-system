@@ -228,10 +228,9 @@ jobs:
     needs: dev-deploy
     runs-on: ubuntu-latest
     steps:
-      - name: Test URL Output using CURL and JQ
+      - name: Test URL using CURL and JQ
         run: |
-          echo $URL
-          kubectl port-forward svc/solar-system  -n development  3000:9090
+          kubectl port-forward svc/solar-system  -n development  3000:3000
           echo "----------------------------------------------"
           curl http://localhost:3000/live -s -k | jq -r .status | grep -i live
           exit 
