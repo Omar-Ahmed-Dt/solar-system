@@ -11,6 +11,7 @@ env:
   MONGO_URI: 'mongodb+srv://supercluster.d83jj.mongodb.net/superData'
   MONGO_USERNAME: ${{ vars.MONGO_USERNAME }}
   MONGO_PASSWORD: ${{ secrets.MONGO_PASSWORD }}
+  region: "us-east-1" 
 
 jobs:
   unit-testing:
@@ -142,9 +143,18 @@ jobs:
           mv test-results.xml reports-${{ github.sha }}/
           ls -ltr reports-${{ github.sha }}/
 
-      - name: Upload to AWS S3
-        run: echo "uploading........."
-  
+      - name: Upload to S3
+        uses: jakejarvis/s3-sync-action@master
+        with:
+          args: --follow-symlinks --delete 
+        env:
+          AWS_S3_BUCKET: solar-system-reports-bucket-9289
+          AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          AWS_REGION: ${{ env.region }} 
+          SOURCE_DIR: 'reports-${{ github.sha }}' 
+          DEST_DIR: 'reports-${{ github.sha }}'
+ 
   docker:
     name: Containerization
     needs: [unit-testing, code-coverage]
@@ -200,6 +210,7 @@ jobs:
           tags: |     # push the new img to multi registries: docker hub and ghcr 
             ${{ vars.DOCKERHUB_USERNAME }}/solar-system:${{ github.sha }}
             ghcr.io/omar-ahmed-dt/solar-system:${{github.sha}}
+
   dev-deploy: 
     if: contains(github.ref, 'feature/')
     needs: docker
@@ -212,20 +223,38 @@ jobs:
       mongodb-uri: ${{ vars.MONGO_URI }}
       environment: development
       k8s-manifest-dir: kubernetes/development/
-      
+
   dev-integration-testing:
-    name: Dev Integration Testing
-    if: contains(github.ref, 'feature/')
-    needs: dev-deploy
-    runs-on: ubuntu-latest
-    steps:
-      - name: Test URL Output using CURL and JQ
-        env:
-          URL: ${{ needs.dev-deploy.outputs.application_url }}
-        run: |
-          echo $URL
-          echo "----------------------------------------------"
-          curl https://$URL/live -s -k | jq -r .status | grep -i live
+        name: Dev Integration Testing
+        if: contains(github.ref, 'feature/')
+        needs: dev-deploy
+        runs-on: ubuntu-latest
+        permissions: 
+          id-token: write
+          contents: read
+        steps:
+
+          - name: Configure AWS Credentials
+            uses: aws-actions/configure-aws-credentials@v4
+            with: 
+              # aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+              # aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }} 
+              role-to-assume: arn:aws:iam::590184071934:role/github_actions 
+              role-session-name: GitHubActions
+              aws-region: ${{ env.region }}
+
+          - name: Test URL using CURL and JQ
+            run: |
+              aws eks update-kubeconfig --region us-east-1 --name my-cluster
+              kubectl port-forward svc/solar-system -n development 3000:3000 &
+              PORT_FORWARD_PID=$!
+    
+              # Wait briefly to ensure port-forward is established
+              sleep 5
+              echo "----------------------------------------------"
+              curl http://localhost:3000/live -s -k | jq -r .status | grep -i live 
+              # Cleanup
+              kill $PORT_FORWARD_PID
 
   prod-deploy: 
     if: github.ref == 'refs/heads/main'
@@ -255,3 +284,21 @@ jobs:
           echo $URL
           echo "----------------------------------------------"
           curl https://$URL/live -s -k | jq -r .status | grep -i live
+  
+  slack-notification:
+    if: always()
+    name: Slack Notification
+    needs: [dev-integration-testing, prod-integration-testing ]
+    continue-on-error: true
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Slack Notification
+        uses: rtCamp/action-slack-notify@v2
+        env:
+          SLACK_WEBHOOK: ${{ secrets.SLACK_WEBHOOK }}
+          SLACK_CHANNEL: github-actions-channel
+          SLACK_COLOR: ${{ job.status }}
+          SLACK_ICON: https://gitlab.com/sidd-harth/solar-system/-/raw/main/images/saturn.png
+          SLACK_MESSAGE: ':hammer_and_wrench: Triggered by ${{ github.actor }}'
+          SLACK_TITLE: Information
