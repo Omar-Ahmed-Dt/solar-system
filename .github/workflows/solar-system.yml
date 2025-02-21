@@ -255,8 +255,7 @@ jobs:
                   --region us-east-1 \
                   --arn arn:aws:iam::590184071934:role/github_actions \
                   --username github-actions \
-                  --group system:masters \
-                  --no-wait
+                  --group system:masters
             
           - name: Test URL using CURL and JQ
             run: |
