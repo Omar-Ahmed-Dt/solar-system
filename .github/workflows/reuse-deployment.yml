@@ -99,6 +99,7 @@ jobs:
                 -o yaml | kubectl apply -f -
                 
           - name: Deploy to Dev Env
+            if: inputs.environment == 'production'
             run: |
               kubectl apply -f ${{ inputs.k8s-manifest-dir }}
                 
