@@ -57,6 +57,13 @@ jobs:
                 aws eks update-kubeconfig --region us-east-1 --name my-cluster
                 kubectl get nodes
                 echo -----------------------------------
+                echo "Install Ingress..."
+                if ! helm status nginx-ingress -n ingress-nginx &>/dev/null; then
+                   helm install nginx-ingress ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace
+                else
+                  echo "NGINX Ingress already installed, skipping installation."
+                fi
+                echo -----------------------------------
                 echo "INGRESS_IP=$(kubectl -n ingress-nginx get svc nginx-ingress-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
                 echo -----------------------------------
                 echo "INGRESS_IP=$(kubectl -n ingress-nginx get svc nginx-ingress-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')" >> $GITHUB_ENV
