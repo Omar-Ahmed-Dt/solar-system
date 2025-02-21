@@ -56,6 +56,16 @@ jobs:
             run: | 
                 aws eks update-kubeconfig --region us-east-1 --name my-cluster
                 kubectl get nodes
+
+          - name: Ingress  
+            if: inputs.environment == 'production'
+            run: | 
+                echo "Install Ingress..."
+                if ! helm status nginx-ingress -n ingress-nginx &>/dev/null; then
+                   helm install nginx-ingress ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace
+                else
+                  echo "NGINX Ingress already installed, skipping installation."
+                fi
                 echo -----------------------------------
                 echo "INGRESS_IP=$(kubectl -n ingress-nginx get svc nginx-ingress-ingress-nginx-controller -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')"
                 echo -----------------------------------
@@ -93,6 +103,7 @@ jobs:
               kubectl apply -f ${{ inputs.k8s-manifest-dir }}
                 
           - name: Set App Ingress Host
+            if: inputs.environment == 'production'
             id: set-ingress-host
             run: | 
               echo "APP_INGRESS_HOST=$(kubectl get ingress -n development -o jsonpath='{.items[0].spec.tls[0].hosts[0]}')"
