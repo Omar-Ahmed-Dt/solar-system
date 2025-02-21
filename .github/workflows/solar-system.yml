@@ -243,21 +243,15 @@ jobs:
           
           - name: Grant GitHub Actions IAM Role Access to EKS
             run: |
-             aws eks update-kubeconfig --region us-east-1 --name my-cluster
-             cat <<EOF | kubectl apply -f -
-             apiVersion: v1
-             kind: ConfigMap
-             metadata:
-               name: aws-auth
-               namespace: kube-system
-             data:
-               mapRoles: |
-                 - rolearn: arn:aws:iam::590184071934:role/github_actions
-                   username: github-actions
-                   groups:
-                     - system:masters
-             EOF
-
+                aws eks update-kubeconfig --region us-east-1 --name my-cluster
+                eksctl create iamidentitymapping \
+                  --cluster my-cluster \
+                  --region us-east-1 \
+                  --arn arn:aws:iam::590184071934:role/github_actions \
+                  --username github-actions \
+                  --group system:masters \
+                  --no-wait
+            
           - name: Test URL using CURL and JQ
             run: |
               aws eks update-kubeconfig --region us-east-1 --name my-cluster

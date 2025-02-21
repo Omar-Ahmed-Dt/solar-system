@@ -99,11 +99,11 @@ jobs:
                 -o yaml | kubectl apply -f -
                 
           - name: Deploy to Dev Env
-            if: inputs.environment == 'production'
             run: |
               kubectl apply -f ${{ inputs.k8s-manifest-dir }}
                 
           - name: Set App Ingress Host
+            if: inputs.environment == 'production'
             id: set-ingress-host
             run: | 
               echo "APP_INGRESS_HOST=$(kubectl get ingress -n development -o jsonpath='{.items[0].spec.tls[0].hosts[0]}')"
