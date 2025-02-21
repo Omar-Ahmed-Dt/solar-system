@@ -53,11 +53,13 @@ jobs:
                 aws-region: us-east-1 
 
           - name: Fetch k8s Cluster Details
-            if: inputs.environment == 'production'
             run: | 
                 aws eks update-kubeconfig --region us-east-1 --name my-cluster
                 kubectl get nodes
-                echo -----------------------------------
+
+          - name: Ingress  
+            if: inputs.environment == 'production'
+            run: | 
                 echo "Install Ingress..."
                 if ! helm status nginx-ingress -n ingress-nginx &>/dev/null; then
                    helm install nginx-ingress ingress-nginx/ingress-nginx --namespace ingress-nginx --create-namespace
