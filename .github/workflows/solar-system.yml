@@ -240,7 +240,13 @@ jobs:
               role-to-assume: arn:aws:iam::590184071934:role/github_actions 
               role-session-name: GitHubActions
               aws-region: ${{ env.region }}
-          
+
+          - name: Install eksctl
+            run: |
+                curl --silent --location "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_Linux_amd64.tar.gz" | tar xz -C /tmp
+                sudo mv /tmp/eksctl /usr/local/bin
+                eksctl version
+            
           - name: Grant GitHub Actions IAM Role Access to EKS
             run: |
                 aws eks update-kubeconfig --region us-east-1 --name my-cluster
